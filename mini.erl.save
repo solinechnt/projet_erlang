@@ -70,7 +70,7 @@ lire_choix() ->
 
   end.
 
-
+ 
 
 traiter_choix(P, 4) ->
 
@@ -84,7 +84,7 @@ traiter_choix(P, 1) ->
 
     io:format("CLIENT dit : je souhaite consulter mon solde~n"),
 
-    P ! {self(), consulter},
+    P ! {self(), 1},
 
     client(P);
 
@@ -94,28 +94,14 @@ traiter_choix(P, 2) ->
 
     io:format("CLIENT dit : je souhaite déposer de l'argent ~n"),
 
-    P ! {self(), deposer, Montant},
+    P ! {self(), "Choix 2 commandé par client"},
 
     client(P);
 
-traiter_choix(P, 3) ->
-
-    io:format("CLIENT dit : je souhaite retirer de l'argent ~n"),
-
-    P ! {self(), retirer, Montant},
-
-    client(P);
+ 
 
 traiter_choix(P,_) ->
 
     io:format("Choix invalide~n"),
 
     client(P).
-
-saisie_montant(Saisie) ->
-    case io:fread(Saisie, "~d") of
-        {ok, Montant} when is_number(Montant) Montant > 0 -> Montant;
-        _ ->
-            io:format("erreur lors de la saisie, veuillez saisir un entier"),
-            saisie_montant(Saisie)
-    end.
