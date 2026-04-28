@@ -82,7 +82,7 @@ traiter_choix(P, 4) ->
 
     io:format("CLIENT dit : Au revoir !~n"),
 
-    P ! {self(), 3};
+    P ! {self(), quitter};
 
  
 
@@ -124,7 +124,7 @@ traiter_choix(P,_) ->
 
 saisie_montant(Saisie) ->
     case io:fread(Saisie, "~d") of
-        {ok, Montant} when Montant > 0 -> Montant;
+        {ok, [Montant]} when Montant > 0 -> Montant;
         _ ->
             io:format("erreur lors de la saisie, veuillez saisir un entier"),
             saisie_montant(Saisie)
