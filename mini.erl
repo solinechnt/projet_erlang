@@ -8,25 +8,31 @@ start() ->
 
                 Pid = spawn(mini, client, [self()]),
 
-                loop_receive(Pid).
+                loop_receive(Pid, 0).
 
                
+ 
+loop_receive(Pid, Solde) ->     
+    receive
+        {Pid, consulter} ->
+            io:format("SERVEUR RECU: Solde = ~p EUROS~n", [Solde]),
+            loop_receive(Pid, Solde);
+        {Pid, deposer, Montant} ->
+            NvSolde= Solde + Montant,
+            io:format("SERVEUR RECU: Depot : ~p EUROS ; Solde = ~p EUROS~n", [Montant, NvSolde]),
+            loop_receive(Pid, NvSolde);
+        {Pid, retirer, Montant} when Montant =< Solde ->
+            NvSolde= Solde - Montant,
+            io:format("SERVEUR RECU: Retrait : ~p EUROS ; Solde = ~p EUROS~n", [Montant, NvSolde]),
+            loop_receive(Pid, NvSolde);
+        {Pid, retirer, Montant} when Montant > Solde ->
+            io:format("SERVEUR RECU: retrait refuse car solde : ~p ~n", [Solde]),
+            loop_receive(Pid, Solde);
+        {Pid, quitter} ->
+            io:format("SERVEUR RECU: au revoir~n")
+    end.
 
-loop_receive(Pid) ->     
-
-                receive
-
-                               {Pid, 1} -> io:format("                      SERVEUR RECU Bonjour: SERVEUR DIT BONJOUR !!!!~n"),
-
-                                               loop_receive(Pid);
-
-                               {Pid, 3} -> io:format("                      SERVEUR RECU FIN: SERVEUR DIT AU REVOIR !!!!~n");
-
-                               {Pid, Message} -> io:format("                      SERVEUR RECU: ~p~n", [Message]),
-
-                                               loop_receive(Pid)
-
-                end.
+        
 
                
 
@@ -92,7 +98,9 @@ traiter_choix(P, 1) ->
 
 traiter_choix(P, 2) ->
 
-    io:format("CLIENT dit : je souhaite déposer de l'argent ~n"),
+    io:format("CLIENT dit : je souhaite deposer de l'argent ~n"),
+
+    Montant = saisie_montant("Montant a deposer : "),
 
     P ! {self(), deposer, Montant},
 
@@ -101,6 +109,8 @@ traiter_choix(P, 2) ->
 traiter_choix(P, 3) ->
 
     io:format("CLIENT dit : je souhaite retirer de l'argent ~n"),
+
+    Montant = saisie_montant("Montant a retirer : "),
 
     P ! {self(), retirer, Montant},
 
@@ -114,7 +124,7 @@ traiter_choix(P,_) ->
 
 saisie_montant(Saisie) ->
     case io:fread(Saisie, "~d") of
-        {ok, Montant} when is_number(Montant) Montant > 0 -> Montant;
+        {ok, Montant} when Montant > 0 -> Montant;
         _ ->
             io:format("erreur lors de la saisie, veuillez saisir un entier"),
             saisie_montant(Saisie)
